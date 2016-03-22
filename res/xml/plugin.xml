@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<uexplugins>
+    <plugin
+        className="org.zywx.wbpalmstar.plugin.uexnfc.EUExNFC"
+        uexName="uexNFC" >
+        <method name="isNFCSupport" />
+        <method name="isNFCOpen" />
+        <method name="startNFCActivity" />
+    </plugin>
+</uexplugins>

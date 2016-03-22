@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<uexplugins>
+    <plugin
+        className="org.zywx.wbpalmstar.plugin.uexnfc.EUExNFC"
+        uexName="uexNFC" >
+        <method name="openNFC" />
+    </plugin>
+</uexplugins>

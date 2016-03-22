@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.zywx.wbpalmstar.widgetone.uex"
+    android:installLocation="internalOnly"
+    android:versionCode="100"
+    android:versionName="3.1.0" >
+
+    <application
+        android:name="org.zywx.wbpalmstar.widgetone.WidgetOneApplication"
+        android:allowClearUserData="false"
+        android:debuggable="true"
+        android:hardwareAccelerated="true"
+        android:icon="@drawable/plugin_uexnfc_icon_nfc"
+        android:label="uexNFC"
+        android:vmSafeMode="true" >
+        <activity
+            android:name="org.zywx.wbpalmstar.engine.EBrowserActivity"
+            android:alwaysRetainTaskState="true"
+            android:configChanges="keyboardHidden|orientation"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:theme="@style/browser_main_theme"
+            android:windowSoftInputMode="stateHidden|adjustPan" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="appcanscheme" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="org.zywx.wbpalmstar.platform.mam.PolicyActivity"
+            android:configChanges="orientation|keyboardHidden|navigation"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name="org.zywx.wbpalmstar.platform.mam.PolicyInfoActivity"
+            android:configChanges="orientation|keyboardHidden|navigation"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name="org.zywx.wbpalmstar.engine.TempActivity"
+            android:launchMode="standard"
+            android:screenOrientation="portrait"
+            android:theme="@style/browser_loading_theme" />
+        <activity
+            android:name="org.zywx.wbpalmstar.engine.LoadingActivity"
+            android:configChanges="keyboardHidden|orientation"
+            android:launchMode="standard"
+            android:screenOrientation="portrait"
+            android:theme="@style/browser_loading_theme" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <receiver android:name="org.zywx.wbpalmstar.platform.push.PushRecieveMsgReceiver" >
+            <intent-filter>
+                <action android:name="org.zywx.push.receive" />
+            </intent-filter>
+        </receiver>
+
+        <!-- uexNFC -->
+
+
+        <!-- NFCActivity -->
+
+        <activity
+            android:name="org.zywx.wbpalmstar.plugin.uexnfc.NFCActivity"
+            android:launchMode="singleTask"
+            android:theme="@android:style/Theme.Holo.Light.DarkActionBar" >
+
+            <!-- 过滤ACTION_NDEF_DISCOVERED类型的Intent -->
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+
+            <!-- 过滤ACTION_TECH_DISCOVERED类型的Intent -->
+            <intent-filter>
+                <action android:name="android.nfc.action.TECH_DISCOVERED" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.nfc.action.TECH_DISCOVERED"
+                android:resource="@xml/filter_nfc" />
+
+            <!-- 过滤ACTION_TAG_DISCOVERED类型的Intent -->
+            <intent-filter>
+                <action android:name="android.nfc.action.TAG_DISCOVERED" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+    </application>
+
+    <uses-sdk android:minSdkVersion="14" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.READ_LOGS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- uexNFC -->
+    <uses-permission android:name="android.permission.NFC" />
+
+    <supports-screens
+        android:anyDensity="true"
+        android:largeScreens="true"
+        android:normalScreens="true"
+        android:resizeable="true"
+        android:smallScreens="true"
+        android:xlargeScreens="true" />
+
+</manifest>
