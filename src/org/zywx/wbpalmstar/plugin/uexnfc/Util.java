@@ -16,15 +16,16 @@ Additional permission under GNU GPL version 3 section 7 */
 package org.zywx.wbpalmstar.plugin.uexnfc;
 
 public final class Util {
-	private final static char[] HEX = { '0', '1', '2', '3', '4', '5', '6', '7',
-			'8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+
+	private final static char[] HEX = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E',
+			'F' };
 
 	private Util() {
+
 	}
 
 	public static byte[] toBytes(int a) {
-		return new byte[] { (byte) (0x000000ff & (a >>> 24)),
-				(byte) (0x000000ff & (a >>> 16)),
+		return new byte[] { (byte) (0x000000ff & (a >>> 24)), (byte) (0x000000ff & (a >>> 16)),
 				(byte) (0x000000ff & (a >>> 8)), (byte) (0x000000ff & (a)) };
 	}
 
@@ -93,8 +94,62 @@ public final class Util {
 
 		return ret;
 	}
-	
+
 	public static String toAmountString(float value) {
 		return String.format("%.2f", value);
+	}
+
+	/**
+	 * 得到十六进制
+	 * 
+	 * @param bytes
+	 * @return
+	 */
+	public static String getHex(byte[] bytes) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = bytes.length - 1; i >= 0; --i) {
+			int b = bytes[i] & 0xff;
+			if (b < 0x10)
+				sb.append('0');
+			sb.append(Integer.toHexString(b));
+			if (i > 0) {
+				sb.append(" ");
+			}
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * 得到十进制
+	 * 
+	 * @param bytes
+	 * @return
+	 */
+	public static long getDec(byte[] bytes) {
+		long result = 0;
+		long factor = 1;
+		for (int i = 0; i < bytes.length; ++i) {
+			long value = bytes[i] & 0xffl;
+			result += value * factor;
+			factor *= 256l;
+		}
+		return result;
+	}
+
+	/**
+	 * 得到十进制（翻转）
+	 * 
+	 * @param bytes
+	 * @return
+	 */
+	public static long getReversed(byte[] bytes) {
+		long result = 0;
+		long factor = 1;
+		for (int i = bytes.length - 1; i >= 0; --i) {
+			long value = bytes[i] & 0xffl;
+			result += value * factor;
+			factor *= 256l;
+		}
+		return result;
 	}
 }

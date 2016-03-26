@@ -17,12 +17,12 @@
             android:textColor="#CCCCCC" />
 
         <TextView
-            android:id="@+id/plugin_uexnfc_tv_support_formats"
+            android:id="@+id/plugin_uexnfc_tv_base_info"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
         <Button
-            android:id="@+id/plugin_uexnfc_btn_clear_support_formats"
+            android:id="@+id/plugin_uexnfc_btn_clear_base_info"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="清除" />
@@ -40,7 +40,8 @@
             android:id="@+id/plugin_uexnfc_tv_content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
-        <Button
+
+        <Button
             android:id="@+id/plugin_uexnfc_btn_clear_content"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

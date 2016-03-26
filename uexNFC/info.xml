@@ -1,7 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <uexplugins>
     <plugin 
-        uexName="uexNFC" version="3.0.0" build = "0">
-        <info>0:uexNFC插件</info>
+        uexName="uexNFC" version="3.0.1" build = "0">
+        <info>1:添加了id和支持协议类型</info>
+        <build>0:uexNFC插件</build>
     </plugin>
 </uexplugins>

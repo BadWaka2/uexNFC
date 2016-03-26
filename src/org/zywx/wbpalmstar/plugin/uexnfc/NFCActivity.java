@@ -10,6 +10,8 @@ import android.content.IntentFilter;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.nfc.tech.IsoDep;
+import android.nfc.tech.MifareClassic;
+import android.nfc.tech.MifareUltralight;
 import android.nfc.tech.Ndef;
 import android.nfc.tech.NfcF;
 import android.nfc.tech.NfcV;
@@ -31,8 +33,8 @@ public class NFCActivity extends Activity implements OnClickListener {
 
 	private static final String TAG = "NFCActivity";
 
-	private TextView tvSupportFormats, tvContent;
-	private Button btnClearSupportFormats, btnClearContent;
+	private TextView tvBaseInfo, tvContent;
+	private Button btnClearBaseInfo, btnClearContent;
 
 	// NFC相关
 	private NfcAdapter mNfcAdapter;
@@ -49,13 +51,13 @@ public class NFCActivity extends Activity implements OnClickListener {
 		setContentView(EUExUtil.getResLayoutID("plugin_uexnfc_activity_nfc"));
 
 		// initView
-		tvSupportFormats = (TextView) findViewById(EUExUtil.getResIdID("plugin_uexnfc_tv_support_formats"));
+		tvBaseInfo = (TextView) findViewById(EUExUtil.getResIdID("plugin_uexnfc_tv_base_info"));
 		tvContent = (TextView) findViewById(EUExUtil.getResIdID("plugin_uexnfc_tv_content"));
-		btnClearSupportFormats = (Button) findViewById(EUExUtil.getResIdID("plugin_uexnfc_btn_clear_support_formats"));
+		btnClearBaseInfo = (Button) findViewById(EUExUtil.getResIdID("plugin_uexnfc_btn_clear_base_info"));
 		btnClearContent = (Button) findViewById(EUExUtil.getResIdID("plugin_uexnfc_btn_clear_content"));
 
 		// initEvent
-		btnClearSupportFormats.setOnClickListener(this);
+		btnClearBaseInfo.setOnClickListener(this);
 		btnClearContent.setOnClickListener(this);
 
 		// 初始化NFC相关变量
@@ -89,24 +91,18 @@ public class NFCActivity extends Activity implements OnClickListener {
 		 * 以下代码会用于处理所有的NDEF_DISCOVERED的MIME类型。只有在需要的时候才做这种处理
 		 */
 		try {
-			mIntentFilters = new IntentFilter[] { 
-					new IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED, "*/*"),
-					new IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED, "*/*"), 
-					};
+			mIntentFilters = new IntentFilter[] { new IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED, "*/*"),
+					new IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED, "*/*"), };
 		} catch (IntentFilter.MalformedMimeTypeException e) {// 须捕捉MalformedMimeTypeException异常
 			e.printStackTrace();
 		}
 
 		// C.建立一个应用程序希望处理的NFC标签技术的数组。调用Object.class.getName()方法来获取你想要支持的技术的类：
-		mTechListsArray = new String[][] { 
-					{ IsoDep.class.getName() }, 
-					{ NfcV.class.getName() },
-					{ NfcF.class.getName() }, 
-					{ Ndef.class.getName() }, 
-				};
+		mTechListsArray = new String[][] { { IsoDep.class.getName() }, { NfcV.class.getName() },
+				{ NfcF.class.getName() }, { Ndef.class.getName() }, };
 
 	}
-	
+
 	@Override
 	/**
 	 * onResume
@@ -143,6 +139,15 @@ public class NFCActivity extends Activity implements OnClickListener {
 	 */
 	protected void onNewIntent(Intent intent) {
 		super.onNewIntent(intent);
+		resolveIntent(intent);
+	}
+
+	/**
+	 * 解析Intent
+	 * 
+	 * @param intent
+	 */
+	private void resolveIntent(Intent intent) {
 
 		// 解析Intent的Action
 		String action = intent.getAction();
@@ -160,20 +165,12 @@ public class NFCActivity extends Activity implements OnClickListener {
 		// ACTION_TECH_DISCOVERED
 		else if (action.equals(NfcAdapter.ACTION_TECH_DISCOVERED)) {
 
+			tvBaseInfo.setText("");
+			tvContent.setText("");
+
 			Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
 
-			// 得到所扫描的nfc卡到底支持哪几种格式
-			String[] formats = getNFCardSupportFormats(tag);
-			if (!tvSupportFormats.getText().toString().isEmpty()) {// 如果不为空
-				tvSupportFormats.setText("");// 清空支持格式栏
-			}
-			if (formats == null) {// 为空判断
-				return;
-			}
-			for (String s : formats) {// 显式在支持格式栏
-				Log.i(TAG, "tech = " + s);
-				tvSupportFormats.append(s + "\n");
-			}
+			tvBaseInfo.append(dumpTagData(tag));
 
 			String data = CardManager.load(tag, getResources());
 			if (data == null) {
@@ -186,26 +183,82 @@ public class NFCActivity extends Activity implements OnClickListener {
 	}
 
 	/**
-	 * 得到所扫描的nfc卡到底支持哪几种格式
+	 * 解析基础信息
 	 * 
-	 * @param intent
+	 * @param tag
 	 * @return
 	 */
-	private String[] getNFCardSupportFormats(Tag tag) {
+	private String dumpTagData(Tag tag) {
+		StringBuilder sb = new StringBuilder();
+		byte[] tagId = tag.getId();
+		sb.append("Tag ID (hex): ").append(Util.getHex(tagId)).append("\n");
+		sb.append("Tag ID (dec): ").append(Util.getDec(tagId)).append("\n");
+		sb.append("ID (reversed): ").append(Util.getReversed(tagId)).append("\n");
 
-		String[] formats = null;
-		if (tag != null) {
-			formats = tag.getTechList();
+		String prefix = "android.nfc.tech.";
+		sb.append("Technologies: ");
+		for (String tech : tag.getTechList()) {
+			sb.append(tech.substring(prefix.length()));
+			sb.append(", ");
 		}
-		return formats;
+		sb.delete(sb.length() - 2, sb.length());
+		for (String tech : tag.getTechList()) {
+			if (tech.equals(MifareClassic.class.getName())) {
+				sb.append('\n');
+				MifareClassic mifareTag = MifareClassic.get(tag);
+				String type = "Unknown";
+				switch (mifareTag.getType()) {
+				case MifareClassic.TYPE_CLASSIC:
+					type = "Classic";
+					break;
+				case MifareClassic.TYPE_PLUS:
+					type = "Plus";
+					break;
+				case MifareClassic.TYPE_PRO:
+					type = "Pro";
+					break;
+				}
+				sb.append("Mifare Classic type: ");
+				sb.append(type);
+				sb.append('\n');
+
+				sb.append("Mifare size: ");
+				sb.append(mifareTag.getSize() + " bytes");
+				sb.append('\n');
+
+				sb.append("Mifare sectors: ");
+				sb.append(mifareTag.getSectorCount());
+				sb.append('\n');
+
+				sb.append("Mifare blocks: ");
+				sb.append(mifareTag.getBlockCount());
+			}
+
+			if (tech.equals(MifareUltralight.class.getName())) {
+				sb.append('\n');
+				MifareUltralight mifareUlTag = MifareUltralight.get(tag);
+				String type = "Unknown";
+				switch (mifareUlTag.getType()) {
+				case MifareUltralight.TYPE_ULTRALIGHT:
+					type = "Ultralight";
+					break;
+				case MifareUltralight.TYPE_ULTRALIGHT_C:
+					type = "Ultralight C";
+					break;
+				}
+				sb.append("Mifare Ultralight type: ");
+				sb.append(type);
+			}
+		}
+		return sb.toString();
 	}
 
 	@Override
 	public void onClick(View v) {
 
-		// btnClearSupportFormats
+		// btnClearBaseInfo
 		if (v.getId() == EUExUtil.getResIdID("plugin_uexnfc_btn_clear_support_formats")) {
-			tvSupportFormats.setText("");
+			tvBaseInfo.setText("");
 		}
 
 		// btnClearContent

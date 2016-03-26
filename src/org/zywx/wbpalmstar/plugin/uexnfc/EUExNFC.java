@@ -17,6 +17,7 @@ import android.nfc.NfcAdapter;
  */
 public class EUExNFC extends EUExBase {
 
+	@SuppressWarnings("unused")
 	private static final String TAG = "EUExNFC";
 
 	// 回调
