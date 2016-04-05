@@ -1,5 +1,7 @@
 package org.zywx.wbpalmstar.plugin.uexnfc;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.zywx.wbpalmstar.engine.universalex.EUExUtil;
 import org.zywx.wbpalmstar.plugin.uexnfc.card.CardManager;
 
@@ -21,7 +23,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 /**
  * NFCActivity
@@ -41,6 +42,11 @@ public class NFCActivity extends Activity implements OnClickListener {
 	private PendingIntent mPendingIntent;
 	private IntentFilter[] mIntentFilters;
 	private String[][] mTechListsArray;
+
+	// 通用数据类型
+	private byte[] mTagId;// 原始字符数组ID
+	private String mTagIdHex;// 十六进制ID
+	private String mTechnologies;// 所支持的协议类型
 
 	/**
 	 * onCreate
@@ -63,13 +69,13 @@ public class NFCActivity extends Activity implements OnClickListener {
 		// 初始化NFC相关变量
 		initNFC();
 
-		// 显式调用onNewIntent()方法
-		onNewIntent(getIntent());
+		// 解析Intent
+		resolveIntent(getIntent());
 
 	}
 
 	/**
-	 * 初始化NFC
+	 * 初始化NFC相关变量
 	 * 
 	 * @formatter:off 格式化关闭
 	 */
@@ -112,15 +118,20 @@ public class NFCActivity extends Activity implements OnClickListener {
 	protected void onResume() {
 		super.onResume();
 
-		if (mNfcAdapter != null && mIntentFilters != null && mTechListsArray != null) {
+		if (mNfcAdapter != null && mPendingIntent != null && mIntentFilters != null && mTechListsArray != null) {
 
 			// 启用前台调度
 			// 须在主线程中被调用，并且只有在该Activity在前台时（要保证在onResume()方法中调用这个方法）
-			mNfcAdapter.enableForegroundDispatch(this, mPendingIntent, mIntentFilters, mTechListsArray);
+			// mNfcAdapter.enableForegroundDispatch(this, mPendingIntent,
+			// mIntentFilters, mTechListsArray);
+			mNfcAdapter.enableForegroundDispatch(this, mPendingIntent, null, null);// 后两个参数传null，表示不显示应用程序选择下拉菜单
 		}
 	}
 
 	@Override
+	/**
+	 * onPause
+	 */
 	protected void onPause() {
 		super.onPause();
 
@@ -138,6 +149,7 @@ public class NFCActivity extends Activity implements OnClickListener {
 	 * 实现onNewIntent回调方法来处理扫描到的NFC标签的数据
 	 */
 	protected void onNewIntent(Intent intent) {
+
 		super.onNewIntent(intent);
 		resolveIntent(intent);
 	}
@@ -151,26 +163,35 @@ public class NFCActivity extends Activity implements OnClickListener {
 
 		// 解析Intent的Action
 		String action = intent.getAction();
+
+		// 如果Action==null，直接return
 		if (action == null) {
-			Toast.makeText(this, "action == null", Toast.LENGTH_SHORT).show();
+
+			Log.i(TAG, "action == null");
 			return;
 		}
-		Toast.makeText(this, action, Toast.LENGTH_SHORT).show();
 
-		// ACTION_NDEF_DISCOVERED
+		// 如果是ACTION_NDEF_DISCOVERED
 		if (action.equals(NfcAdapter.ACTION_NDEF_DISCOVERED)) {
 
 		}
 
-		// ACTION_TECH_DISCOVERED
+		// 如果是ACTION_TECH_DISCOVERED
 		else if (action.equals(NfcAdapter.ACTION_TECH_DISCOVERED)) {
 
-			tvBaseInfo.setText("");
-			tvContent.setText("");
+		}
+
+		// 如果是ACTION_TAG_DISCOVERED
+		else if (action.equals(NfcAdapter.ACTION_TAG_DISCOVERED)) {
+
+			// 清空TextView
+			clearAllTextView();
 
 			Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
 
-			tvBaseInfo.append(dumpTagData(tag));
+			getBaseInfo(tag);
+
+			returnData2PreviousActivity();
 
 			String data = CardManager.load(tag, getResources());
 			if (data == null) {
@@ -178,30 +199,37 @@ public class NFCActivity extends Activity implements OnClickListener {
 			}
 			Log.i(TAG, data);
 			tvContent.setText(data);
-
 		}
+
 	}
 
 	/**
-	 * 解析基础信息
+	 * 得到基础信息
 	 * 
 	 * @param tag
 	 * @return
 	 */
-	private String dumpTagData(Tag tag) {
-		StringBuilder sb = new StringBuilder();
-		byte[] tagId = tag.getId();
-		sb.append("Tag ID (hex): ").append(Util.getHex(tagId)).append("\n");
-		sb.append("Tag ID (dec): ").append(Util.getDec(tagId)).append("\n");
-		sb.append("ID (reversed): ").append(Util.getReversed(tagId)).append("\n");
+	private void getBaseInfo(Tag tag) {
 
-		String prefix = "android.nfc.tech.";
-		sb.append("Technologies: ");
+		// 原始字节数组id
+		mTagId = tag.getId();
+
+		// 十六进制id
+		mTagIdHex = Util.byte2HexString(mTagId);
+		Log.i(TAG, "【getBaseInfo】	mTagIdHex = " + mTagIdHex);
+
+		// 支持协议类型
+		StringBuffer sb = new StringBuffer();
+		String prefix = "android.nfc.tech.";// 前缀
 		for (String tech : tag.getTechList()) {
-			sb.append(tech.substring(prefix.length()));
-			sb.append(", ");
+			sb.append(tech.substring(prefix.length()));// 去掉前缀
+			sb.append(",");
 		}
-		sb.delete(sb.length() - 2, sb.length());
+		sb.delete(sb.length() - 1, sb.length());// 删除多余的逗号
+		mTechnologies = sb.toString();
+		Log.i(TAG, "【getBaseInfo】	mTechnologies = " + mTechnologies);
+
+		// MifareClassic特有
 		for (String tech : tag.getTechList()) {
 			if (tech.equals(MifareClassic.class.getName())) {
 				sb.append('\n');
@@ -250,21 +278,57 @@ public class NFCActivity extends Activity implements OnClickListener {
 				sb.append(type);
 			}
 		}
-		return sb.toString();
+
+	}
+
+	/**
+	 * 封装数据为一个JSON并回传给上一个Activity
+	 */
+	private void returnData2PreviousActivity() {
+
+		// 封装进一个JSON中
+		JSONObject jsonObject = new JSONObject();
+		try {
+
+			jsonObject.put(Constant.GET_NFC_INFO_UID, mTagIdHex);
+			jsonObject.put(Constant.GET_NFC_INFO_TECHNOLOGIES, mTechnologies);
+
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+
+		// 回传给上一个Activity数据
+		Intent intent = new Intent();
+		intent.putExtra(Constant.GET_NFC_INFO_INTENT_EXTRA_NAME, jsonObject.toString());
+		setResult(RESULT_OK, intent);
+
+		finish();
 	}
 
 	@Override
+	/**
+	 * onClick
+	 */
 	public void onClick(View v) {
 
-		// btnClearBaseInfo
-		if (v.getId() == EUExUtil.getResIdID("plugin_uexnfc_btn_clear_support_formats")) {
+		// 清除基础信息 btnClearBaseInfo
+		if (v.getId() == EUExUtil.getResIdID("plugin_uexnfc_btn_clear_base_info")) {
 			tvBaseInfo.setText("");
 		}
 
-		// btnClearContent
+		// 清除内容 btnClearContent
 		else if (v.getId() == EUExUtil.getResIdID("plugin_uexnfc_btn_clear_content")) {
 			tvContent.setText("");
 		}
 
+	}
+
+	/**
+	 * 清空所有TextView中的内容
+	 */
+	private void clearAllTextView() {
+
+		tvBaseInfo.setText("");
+		tvContent.setText("");
 	}
 }

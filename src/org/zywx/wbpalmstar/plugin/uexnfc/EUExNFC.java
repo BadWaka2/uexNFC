@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.nfc.NfcAdapter;
+import android.util.Log;
 
 /**
  * 入口类
@@ -17,12 +18,13 @@ import android.nfc.NfcAdapter;
  */
 public class EUExNFC extends EUExBase {
 
-	@SuppressWarnings("unused")
 	private static final String TAG = "EUExNFC";
 
 	// 回调
 	private static final String CB_IS_NFC_SUPPORT = "uexNFC.cbIsNFCSupport";// 判断设备是否支持NFC回调
 	private static final String CB_IS_NFC_OPEN = "uexNFC.cbIsNFCOpen";// 判断NFC是否开启回调
+	private static final String CB_START_SCAN_NFC = "uexNFC.cbStartScanNFC";// 开始扫描NFC回调
+	private static final String CB_GET_NFC_DATA = "uexNFC.cbGetNFCData";// 得到NFC数据回调
 
 	/**
 	 * 构造方法
@@ -32,6 +34,7 @@ public class EUExNFC extends EUExBase {
 	 */
 	public EUExNFC(Context arg0, EBrowserView arg1) {
 		super(arg0, arg1);
+
 	}
 
 	/**
@@ -69,14 +72,20 @@ public class EUExNFC extends EUExBase {
 	}
 
 	/**
-	 * 打开NFCActivity
+	 * 开始扫描NFC
 	 * 
 	 * @param param
 	 */
-	public void startNFCActivity(String[] param) {
+	public void startScanNFC(String[] param) {
+
+		// 跳转到原生的透明的NFCActivity
 		Intent intent = new Intent();
 		intent.setClass(mContext, NFCActivity.class);
 		startActivityForResult(intent, Constant.REQUEST_CODE_NFC_ACTIVITY);
+
+		// 给前端回调
+		jsCallback(CB_START_SCAN_NFC, 0, EUExCallback.F_C_TEXT, Constant.STATUS_SUCCESS);
+
 	}
 
 	@Override
@@ -89,9 +98,15 @@ public class EUExNFC extends EUExBase {
 
 		// NFCActivity
 		case Constant.REQUEST_CODE_NFC_ACTIVITY:
+
 			// if OK
 			if (resultCode == Activity.RESULT_OK) {
 
+				// 获得NFC数据
+				String nfcData = data.getStringExtra(Constant.GET_NFC_INFO_INTENT_EXTRA_NAME);
+
+				// 回调给前端
+				cbGetNFCData(nfcData);
 			}
 
 			break;
@@ -102,10 +117,23 @@ public class EUExNFC extends EUExBase {
 	}
 
 	/**
+	 * 返回NFC数据
+	 * 
+	 * @param nfcData
+	 */
+	public void cbGetNFCData(String nfcData) {
+
+		jsCallback(CB_GET_NFC_DATA, 0, EUExCallback.F_C_TEXT, nfcData);
+	}
+
+	/**
 	 * clean
 	 */
 	@Override
 	protected boolean clean() {
+
+		Log.i(TAG, "clean");
+
 		return false;
 	}
 

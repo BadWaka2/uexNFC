@@ -23,6 +23,12 @@ import org.zywx.wbpalmstar.plugin.uexnfc.Util;
 
 import android.nfc.tech.IsoDep;
 
+/**
+ * 智能卡标准iso7816
+ * 
+ * @author Administrator
+ *
+ */
 public class Iso7816 {
 	public static final byte[] EMPTY = { 0 };
 
@@ -422,6 +428,8 @@ public class Iso7816 {
 		}
 
 		public Response selectByName(byte... name) {
+
+			// 使用allocate()静态方法，创建ByteBuffer
 			ByteBuffer buff = ByteBuffer.allocate(name.length + 6);
 			buff.put((byte) 0x00) // CLA Class
 					.put((byte) 0xA4) // INS Instruction

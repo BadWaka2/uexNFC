@@ -63,32 +63,12 @@
         </receiver>
 
         <!-- uexNFC -->
-
-
-        <!-- NFCActivity -->
+        <!-- NFCActivity 透明的Activity -->
 
         <activity
             android:name="org.zywx.wbpalmstar.plugin.uexnfc.NFCActivity"
             android:launchMode="singleTask"
-            android:theme="@android:style/Theme.Holo.Light.DarkActionBar" >
-
-            <!-- 过滤ACTION_NDEF_DISCOVERED类型的Intent -->
-            <intent-filter>
-                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <data android:mimeType="text/plain" />
-            </intent-filter>
-
-            <!-- 过滤ACTION_TECH_DISCOVERED类型的Intent -->
-            <intent-filter>
-                <action android:name="android.nfc.action.TECH_DISCOVERED" />
-            </intent-filter>
-
-            <meta-data
-                android:name="android.nfc.action.TECH_DISCOVERED"
-                android:resource="@xml/filter_nfc" />
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" >
 
             <!-- 过滤ACTION_TAG_DISCOVERED类型的Intent -->
             <intent-filter>

@@ -23,6 +23,12 @@ import org.zywx.wbpalmstar.plugin.uexnfc.Util;
 
 import android.nfc.tech.NfcF;
 
+/**
+ * FeliCa是索尼公司推出的非接触式智能卡
+ * 
+ * @author Administrator
+ *
+ */
 public class FeliCa {
 	public static final byte[] EMPTY = {};
 

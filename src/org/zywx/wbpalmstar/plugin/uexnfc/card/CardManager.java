@@ -20,11 +20,15 @@ import org.zywx.wbpalmstar.plugin.uexnfc.card.pboc.PbocCard;
 import android.content.res.Resources;
 import android.nfc.Tag;
 import android.nfc.tech.IsoDep;
+import android.nfc.tech.MifareClassic;
 import android.nfc.tech.NfcF;
 import android.nfc.tech.NfcV;
 import android.os.Parcelable;
+import android.util.Log;
 
 public final class CardManager {
+
+	private static final String TAG = "CardManager";
 
 	private static final String SP = "<br />------------------------------</b><br />";
 
@@ -51,19 +55,36 @@ public final class CardManager {
 	public static String load(Parcelable parcelable, Resources res) {
 		final Tag tag = (Tag) parcelable;
 
+		// MifareClassic
+		final MifareClassic mifareClassic = MifareClassic.get(tag);
+		if (mifareClassic != null) {
+			Log.i(TAG, "mifareClassic != null");
+		} else {
+			Log.i(TAG, "mifareClassic == null");
+		}
+
+		// IsoDep
 		final IsoDep isodep = IsoDep.get(tag);
 		if (isodep != null) {
 			return PbocCard.load(isodep, res);
+		} else {
+			Log.i(TAG, "isodep == null");
 		}
 
+		// NfcV
 		final NfcV nfcv = NfcV.get(tag);
 		if (nfcv != null) {
 			return VicinityCard.load(nfcv, res);
+		} else {
+			Log.i(TAG, "nfcv == null");
 		}
 
+		// NfcF
 		final NfcF nfcf = NfcF.get(tag);
 		if (nfcf != null) {
 			return OctopusCard.load(nfcf, res);
+		} else {
+			Log.i(TAG, "nfcf == null");
 		}
 
 		return null;

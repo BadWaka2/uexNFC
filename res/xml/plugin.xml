@@ -5,6 +5,6 @@
         uexName="uexNFC" >
         <method name="isNFCSupport" />
         <method name="isNFCOpen" />
-        <method name="startNFCActivity" />
+        <method name="startScanNFC" />
     </plugin>
 </uexplugins>

@@ -3,6 +3,8 @@
     <plugin
         className="org.zywx.wbpalmstar.plugin.uexnfc.EUExNFC"
         uexName="uexNFC" >
-        <method name="openNFC" />
+        <method name="isNFCSupport" />
+        <method name="isNFCOpen" />
+        <method name="startScanNFC" />
     </plugin>
 </uexplugins>

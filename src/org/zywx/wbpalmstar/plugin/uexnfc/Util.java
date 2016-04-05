@@ -15,7 +15,12 @@ Additional permission under GNU GPL version 3 section 7 */
 
 package org.zywx.wbpalmstar.plugin.uexnfc;
 
+import android.annotation.SuppressLint;
+import android.util.Log;
+
 public final class Util {
+
+	private static final String TAG = "Util";
 
 	private final static char[] HEX = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E',
 			'F' };
@@ -95,6 +100,7 @@ public final class Util {
 		return ret;
 	}
 
+	@SuppressLint("DefaultLocale")
 	public static String toAmountString(float value) {
 		return String.format("%.2f", value);
 	}
@@ -151,5 +157,43 @@ public final class Util {
 			factor *= 256l;
 		}
 		return result;
+	}
+
+	/**
+	 * Convert an array of bytes into a string of hex values.
+	 * 
+	 * @param bytes
+	 *            Bytes to convert.
+	 * @return The bytes in hex string format.
+	 */
+	public static String byte2HexString(byte[] bytes) {
+		String ret = "";
+		if (bytes != null) {
+			for (Byte b : bytes) {
+				ret += String.format("%02X", b.intValue() & 0xFF);
+			}
+		}
+		return ret;
+	}
+
+	/**
+	 * Convert a string of hex data into a byte array. Original author is: Dave
+	 * L. (http://stackoverflow.com/a/140861).
+	 * 
+	 * @param s
+	 *            The hex string to convert
+	 * @return An array of bytes with the values of the string.
+	 */
+	public static byte[] hexStringToByteArray(String s) {
+		int len = s.length();
+		byte[] data = new byte[len / 2];
+		try {
+			for (int i = 0; i < len; i += 2) {
+				data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i + 1), 16));
+			}
+		} catch (Exception e) {
+			Log.d(TAG, "Argument(s) for hexStringToByteArray(String s)" + "was not a hex string");
+		}
+		return data;
 	}
 }
