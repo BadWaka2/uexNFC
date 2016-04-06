@@ -7,6 +7,8 @@ import org.zywx.wbpalmstar.plugin.uexnfc.card.CardManager;
 
 import android.app.Activity;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.nfc.NfcAdapter;
@@ -18,6 +20,7 @@ import android.nfc.tech.Ndef;
 import android.nfc.tech.NfcF;
 import android.nfc.tech.NfcV;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -43,6 +46,10 @@ public class NFCActivity extends Activity implements OnClickListener {
 	private IntentFilter[] mIntentFilters;
 	private String[][] mTechListsArray;
 
+	// 本地广播接收器
+	private NFCActivityLocalReceiver mLocalReceiver;
+	private IntentFilter mIntentFilter;
+
 	// 通用数据类型
 	private byte[] mTagId;// 原始字符数组ID
 	private String mTagIdHex;// 十六进制ID
@@ -53,6 +60,9 @@ public class NFCActivity extends Activity implements OnClickListener {
 	 */
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+
+		Log.i(TAG, "【onCreate】");
+
 		super.onCreate(savedInstanceState);
 		setContentView(EUExUtil.getResLayoutID("plugin_uexnfc_activity_nfc"));
 
@@ -65,6 +75,13 @@ public class NFCActivity extends Activity implements OnClickListener {
 		// initEvent
 		btnClearBaseInfo.setOnClickListener(this);
 		btnClearContent.setOnClickListener(this);
+
+		// 初始化本地广播
+		mLocalReceiver = new NFCActivityLocalReceiver();
+		mIntentFilter = new IntentFilter();
+		mIntentFilter.addAction(Constant.LOCAL_BROADCAST_ACTION_GET_NFC_INFO_FAIL);
+		// 注册本地广播接收器
+		LocalBroadcastManager.getInstance(this).registerReceiver(mLocalReceiver, mIntentFilter);
 
 		// 初始化NFC相关变量
 		initNFC();
@@ -116,6 +133,9 @@ public class NFCActivity extends Activity implements OnClickListener {
 	 * @formatter:on 格式化开启
 	 */
 	protected void onResume() {
+
+		Log.i(TAG, "【onResume】");
+
 		super.onResume();
 
 		if (mNfcAdapter != null && mPendingIntent != null && mIntentFilters != null && mTechListsArray != null) {
@@ -124,7 +144,8 @@ public class NFCActivity extends Activity implements OnClickListener {
 			// 须在主线程中被调用，并且只有在该Activity在前台时（要保证在onResume()方法中调用这个方法）
 			// mNfcAdapter.enableForegroundDispatch(this, mPendingIntent,
 			// mIntentFilters, mTechListsArray);
-			mNfcAdapter.enableForegroundDispatch(this, mPendingIntent, null, null);// 后两个参数传null，表示不显示应用程序选择下拉菜单
+			// mNfcAdapter.enableForegroundDispatch(this, mPendingIntent, null,
+			// null);// 后两个参数传null，表示不显示应用程序选择下拉菜单
 		}
 	}
 
@@ -133,12 +154,29 @@ public class NFCActivity extends Activity implements OnClickListener {
 	 * onPause
 	 */
 	protected void onPause() {
+
+		Log.i(TAG, "【onPause】");
+
 		super.onPause();
 
 		if (mNfcAdapter != null) {
 
 			// 禁用前台调度
-			mNfcAdapter.disableForegroundDispatch(this);
+			// mNfcAdapter.disableForegroundDispatch(this);
+		}
+	}
+
+	@Override
+	protected void onDestroy() {
+
+		Log.i(TAG, "【onDestroy】");
+
+		super.onDestroy();
+
+		LocalBroadcastManager.getInstance(this).unregisterReceiver(mLocalReceiver);
+
+		if (mLocalReceiver != null) {
+			mLocalReceiver = null;
 		}
 	}
 
@@ -149,6 +187,8 @@ public class NFCActivity extends Activity implements OnClickListener {
 	 * 实现onNewIntent回调方法来处理扫描到的NFC标签的数据
 	 */
 	protected void onNewIntent(Intent intent) {
+
+		Log.i(TAG, "【onNewIntent】");
 
 		super.onNewIntent(intent);
 		resolveIntent(intent);
@@ -191,7 +231,7 @@ public class NFCActivity extends Activity implements OnClickListener {
 
 			getBaseInfo(tag);
 
-			returnData2PreviousActivity();
+			packageDataAndSendBroadcast();
 
 			String data = CardManager.load(tag, getResources());
 			if (data == null) {
@@ -282,9 +322,9 @@ public class NFCActivity extends Activity implements OnClickListener {
 	}
 
 	/**
-	 * 封装数据为一个JSON并回传给上一个Activity
+	 * 封装数据为一个JSON并发送本地广播
 	 */
-	private void returnData2PreviousActivity() {
+	private void packageDataAndSendBroadcast() {
 
 		// 封装进一个JSON中
 		JSONObject jsonObject = new JSONObject();
@@ -297,10 +337,10 @@ public class NFCActivity extends Activity implements OnClickListener {
 			e.printStackTrace();
 		}
 
-		// 回传给上一个Activity数据
-		Intent intent = new Intent();
+		// 发送本地广播
+		Intent intent = new Intent(Constant.LOCAL_BROADCAST_ACTION_GET_NFC_INFO_SUCCESS);
 		intent.putExtra(Constant.GET_NFC_INFO_INTENT_EXTRA_NAME, jsonObject.toString());
-		setResult(RESULT_OK, intent);
+		LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
 		finish();
 	}
@@ -330,5 +370,29 @@ public class NFCActivity extends Activity implements OnClickListener {
 
 		tvBaseInfo.setText("");
 		tvContent.setText("");
+	}
+
+	/**
+	 * 本地广播接收器
+	 * 
+	 * @author waka
+	 *
+	 */
+	class NFCActivityLocalReceiver extends BroadcastReceiver {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+
+			String action = intent.getAction();
+			Log.i(TAG, "【onReceive】		action = " + action);
+
+			// 获取NFC信息失败广播
+			if (action.equals(Constant.LOCAL_BROADCAST_ACTION_GET_NFC_INFO_FAIL)) {
+
+				// 关闭NFCActivity
+				finish();
+			}
+		}
+
 	}
 }

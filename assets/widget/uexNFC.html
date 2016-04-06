@@ -26,6 +26,11 @@
 			alert("------cbStartScanNFC------\n" + data);
 		}
 		
+		//停止扫描NFC回调
+		uexNFC.cbStopScanNFC = function(opCode, dataType, data) {
+			alert("------cbStopScanNFC------\n" + data);
+		}
+		
 		//得到NFC数据回调
 		uexNFC.cbGetNFCData = function(opCode, dataType, data) {
 			alert("------cbGetNFCData------\n" + data);
@@ -59,6 +64,9 @@
 
 			<span>startScanNFC</span>
 			<input class="btn" type="button" value="开始扫描NFC" onclick="uexNFC.startScanNFC()" /><br /> <br />
+			
+			<span>stopScanNFC</span>
+			<input class="btn" type="button" value="停止扫描NFC" onclick="uexNFC.stopScanNFC()" /><br /> <br />
 
 		</div>
 	</div>

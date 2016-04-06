@@ -16,7 +16,8 @@ public class Constant {
 	public static final int REQUEST_CODE_NFC_ACTIVITY = 1;// NFCActivity
 
 	// 得到NFC信息本地广播
-	public static final String LOCAL_BROADCAST_GET_NFC_INFO_ACTION = "org.zywx.wbpalmstar.plugin.uexnfc.NFC_CALLBACK";// NFC数据回调本地广播Action
+	public static final String LOCAL_BROADCAST_ACTION_GET_NFC_INFO_SUCCESS = "org.zywx.wbpalmstar.plugin.uexnfc.GET_NFC_INFO_SUCCESS";// 得到NFC信息成功广播
+	public static final String LOCAL_BROADCAST_ACTION_GET_NFC_INFO_FAIL = "org.zywx.wbpalmstar.plugin.uexnfc.GET_NFC_INFO_FAIL";// 得到NFC信息失败广播
 	public static final String GET_NFC_INFO_INTENT_EXTRA_NAME = "data";// intent附加信息字段名
 	// 得到NFC信息JSON
 	public static final String GET_NFC_INFO_UID = "uid";// uid，十六进制

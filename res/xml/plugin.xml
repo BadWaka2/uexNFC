@@ -6,5 +6,6 @@
         <method name="isNFCSupport" />
         <method name="isNFCOpen" />
         <method name="startScanNFC" />
+        <method name="stopScanNFC" />
     </plugin>
 </uexplugins>
