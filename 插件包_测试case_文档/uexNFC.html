@@ -1,0 +1,74 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<link rel="stylesheet" type="text/css" href="css/index.css">
+
+<script type="text/javascript">
+
+	//回调
+	window.uexOnload = function(type) {
+
+		//判断设备是否支持NFC回调
+		uexNFC.cbIsNFCSupport = function(opCode, dataType, data) {
+			alert("------cbIsNFCSupport------\n" + data);
+		}
+		
+		//判断NFC是否开启回调
+		uexNFC.cbIsNFCOpen = function(opCode, dataType, data) {
+			alert("------cbIsNFCOpen------\n" + data);
+		}
+		
+		//开始扫描NFC回调
+		uexNFC.cbStartScanNFC = function(opCode, dataType, data) {
+			alert("------cbStartScanNFC------\n" + data);
+		}
+		
+		//停止扫描NFC回调
+		uexNFC.cbStopScanNFC = function(opCode, dataType, data) {
+			alert("------cbStopScanNFC------\n" + data);
+		}
+		
+		//得到NFC数据回调
+		uexNFC.cbGetNFCData = function(opCode, dataType, data) {
+			alert("------cbGetNFCData------\n" + data);
+		}
+	}
+	
+	//产生 PKCS10 证书请求
+	function generateP10() {
+		var certType = document.getElementById("certType1").value;
+		var pinCode = document.getElementById("pinCode1").value;
+		var certSys = document.getElementById("certSys1").value;
+		var loginname = document.getElementById("loginname1").value;
+		var domainname = document.getElementById("domainname1").value;
+		uexCFCA.generateP10(certType,pinCode,certSys,loginname,domainname);
+	}
+	
+	
+</script>
+</head>
+
+<body>
+	<div class="tit">uexNFC</div>
+	<div class="conbor">
+		<div class="consj">
+		
+			<span>isNFCSupport</span>
+			<input class="btn" type="button" value="判断设备是否支持NFC功能" onclick="uexNFC.isNFCSupport()" /><br /> <br />
+
+			<span>isNFCOpen</span>
+			<input class="btn" type="button" value="判断设备NFC是否打开" onclick="uexNFC.isNFCOpen()" /><br /> <br />
+
+			<span>startScanNFC</span>
+			<input class="btn" type="button" value="开始扫描NFC" onclick="uexNFC.startScanNFC()" /><br /> <br />
+			
+			<span>stopScanNFC</span>
+			<input class="btn" type="button" value="停止扫描NFC" onclick="uexNFC.stopScanNFC()" /><br /> <br />
+
+		</div>
+	</div>
+</body>
+</html>
