@@ -6,14 +6,16 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.zywx.wbpalmstar.engine.universalex.EUExUtil;
-import org.zywx.wbpalmstar.plugin.uexnfc.bean.MifareClassicBean;
-import org.zywx.wbpalmstar.plugin.uexnfc.bean.NFCBaseBean;
+import org.zywx.wbpalmstar.plugin.uexnfc.mifareclassic.MifareClassicBean;
 import org.zywx.wbpalmstar.plugin.uexnfc.mifareclassic.MifareClassicHelper;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
+import android.nfc.tech.IsoDep;
+import android.nfc.tech.MifareClassic;
+import android.nfc.tech.NfcA;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -31,15 +33,9 @@ public class NFCActivity extends Activity {
 
 	private static final String TAG = "NFCActivity";
 
-	// 通用数据类型
-	private byte[] mTagId;// 原始字符数组ID
-	private String mTagIdHex;// 十六进制ID
-	private String mTechnologies;// 所支持的协议类型
-
 	// 协议标识
-	@SuppressWarnings("unused")
-	private static final int NFC_BASE = 0;// 基础类型
-	private static final int MIFARE_CLASSIC = 1;// MifareClassic类型
+	private static final int TECH_NFC_BASE = 0;// 基础类型
+	private static final int TECH_MIFARE_CLASSIC = 1;// MifareClassic类型
 
 	// Handler
 	private MyHandler mHandler = new MyHandler(this);
@@ -61,11 +57,12 @@ public class NFCActivity extends Activity {
 
 		public void handleMessage(Message msg) {
 
+			// 获得数据
 			JSONObject jsonObject = (JSONObject) msg.obj;
 
 			// 发送广播并关闭当前 Activity
 			wrNFCActivity.get().sendBroadcastAndFinish(jsonObject);
-		};
+		}
 	}
 
 	@Override
@@ -148,17 +145,23 @@ public class NFCActivity extends Activity {
 			// 得到Tag
 			final Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
 
-			// 得到基础信息
-			getBaseInfo(tag);
-
-			// 得到详细信息，因为数据量较大，须在子线程中执行
+			// 得到Tag信息，因为数据量较大，须在子线程中执行
 			new Thread(new Runnable() {
 
 				@Override
 				public void run() {
 
-					// 得到详细信息
-					getDetailInfo(tag);
+					synchronized (this) {
+
+						// 得到Tag信息
+						JSONObject jsonObject = getTagInfo(tag);
+
+						// 向Handler发消息，通知主线程发广播
+						Message message = Message.obtain();
+						message.obj = jsonObject;// 把得到的数据放在message里
+						mHandler.sendMessage(message);
+					}
+
 				}
 			}).start();
 
@@ -167,18 +170,71 @@ public class NFCActivity extends Activity {
 	}
 
 	/**
-	 * 得到基础信息
+	 * 得到Tag信息
+	 * 
+	 * 内部会进行耗时操作，建议放在子线程中执行
 	 * 
 	 * @param tag
 	 */
-	private void getBaseInfo(Tag tag) {
+	private JSONObject getTagInfo(Tag tag) {
+
+		// 得到基础信息
+		NFCBaseBean baseBean = getBaseInfo(tag);
+		JSONObject jsonBaseInfo = packageData(baseBean, TECH_NFC_BASE);
+
+		/*
+		 * 如果该标签支持MifareClassic类型
+		 */
+		if (MifareClassic.get(tag) != null) {
+
+			Log.i(TAG, "【getTagInfo】	类型 : MifareClassic");
+
+			MifareClassicHelper mifareClassicHelper = new MifareClassicHelper(tag);
+
+			// 读取数据
+			MifareClassicBean mcBean = mifareClassicHelper.read();
+
+			if (mcBean != null) {
+
+				// 传入基本数据
+				mcBean.setBaseBean(baseBean);
+
+				// 封装数据进一个JSON中
+				JSONObject jsonObject = packageData(mcBean, TECH_MIFARE_CLASSIC);
+				return jsonObject;
+			}
+		}
+
+		/*
+		 * 如果该标签支持IsoDep类型
+		 */
+		else if (IsoDep.get(tag) != null) {
+
+		}
+
+		else if (NfcA.get(tag) != null) {
+
+		}
+
+		return jsonBaseInfo;
+	}
+
+	/**
+	 * 得到基础信息
+	 * 
+	 * @param tag
+	 * @return
+	 */
+	private NFCBaseBean getBaseInfo(Tag tag) {
+
+		NFCBaseBean baseBean = new NFCBaseBean();
 
 		// 原始字节数组id
-		mTagId = tag.getId();
+		byte[] tagId = tag.getId();
 
 		// 十六进制id
-		mTagIdHex = Util.byte2HexString(mTagId);
-		Log.i(TAG, "【getBaseInfo】	mTagIdHex = " + mTagIdHex);
+		String tagIdHex = Util.byte2HexString(tagId);
+		Log.i(TAG, "【得到Tag信息】	tagIdHex = " + tagIdHex);
 
 		// 支持协议类型
 		StringBuffer sb = new StringBuffer();
@@ -188,47 +244,14 @@ public class NFCActivity extends Activity {
 			sb.append(",");
 		}
 		sb.delete(sb.length() - 1, sb.length());// 删除多余的逗号
-		mTechnologies = sb.toString();
-		Log.i(TAG, "【getBaseInfo】	mTechnologies = " + mTechnologies);
+		String technologies = sb.toString();
+		Log.i(TAG, "【得到Tag信息】	technologies = " + technologies);
 
-	}
+		baseBean.setTagId(tagId);
+		baseBean.setTagIdHex(tagIdHex);
+		baseBean.setTechnologies(technologies);
 
-	/**
-	 * 得到详细信息
-	 * 
-	 * 内部会进行耗时操作，建议放在子线程中执行
-	 * 
-	 * @param tag
-	 */
-	private synchronized void getDetailInfo(Tag tag) {
-
-		/**
-		 * MifareClassic
-		 */
-		MifareClassicHelper mifareClassicHelper = new MifareClassicHelper(tag);
-
-		// 如果该标签支持MifareClassic类型
-		if (mifareClassicHelper.isMifareClassic()) {
-
-			// 读取数据
-			MifareClassicBean mcBean = mifareClassicHelper.read();
-
-			// 传入基本数据
-			mcBean.setTagId(mTagId);
-			mcBean.setTagIdHex(mTagIdHex);
-			mcBean.setTechnologies(mTechnologies);
-
-			// 封装数据进一个JSON中
-			JSONObject jsonObject = packageData(mcBean, MIFARE_CLASSIC);
-
-			// 向Handler发消息，通知主线程发广播
-			Message message = Message.obtain();
-			message.obj = jsonObject;// 把得到的数据放在message里
-			mHandler.sendMessage(message);
-
-			return;
-		}
-
+		return baseBean;
 	}
 
 	/**
@@ -238,7 +261,7 @@ public class NFCActivity extends Activity {
 	 * @param tech_协议标识
 	 * @return
 	 */
-	private synchronized JSONObject packageData(NFCBaseBean baseBean, int tech) {
+	private JSONObject packageData(NFCBaseBean baseBean, int tech) {
 
 		// 封装基础信息进一个JSON中
 		JSONObject jsonObject = new JSONObject();
@@ -254,7 +277,7 @@ public class NFCActivity extends Activity {
 		switch (tech) {
 
 		// MifareClassic
-		case MIFARE_CLASSIC:
+		case TECH_MIFARE_CLASSIC:
 
 			MifareClassicBean mcBean = (MifareClassicBean) baseBean;
 

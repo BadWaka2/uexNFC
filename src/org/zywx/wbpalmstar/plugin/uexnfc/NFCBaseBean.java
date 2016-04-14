@@ -1,4 +1,4 @@
-package org.zywx.wbpalmstar.plugin.uexnfc.bean;
+package org.zywx.wbpalmstar.plugin.uexnfc;
 
 public class NFCBaseBean {
 
@@ -62,6 +62,18 @@ public class NFCBaseBean {
 		}
 
 		return s;
+	}
+
+	/**
+	 * 根据baseBean设置BaseBean的值
+	 * 
+	 * @param baseBean
+	 */
+	public void setBaseBean(NFCBaseBean baseBean) {
+
+		tagId = baseBean.getTagId();
+		tagIdHex = baseBean.getTagIdHex();
+		technologies = baseBean.getTechnologies();
 	}
 
 }

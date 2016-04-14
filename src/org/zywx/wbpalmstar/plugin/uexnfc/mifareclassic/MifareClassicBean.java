@@ -1,4 +1,6 @@
-package org.zywx.wbpalmstar.plugin.uexnfc.bean;
+package org.zywx.wbpalmstar.plugin.uexnfc.mifareclassic;
+
+import org.zywx.wbpalmstar.plugin.uexnfc.NFCBaseBean;
 
 import android.util.SparseArray;
 

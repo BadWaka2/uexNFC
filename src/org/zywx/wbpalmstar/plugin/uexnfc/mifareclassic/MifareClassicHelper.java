@@ -3,7 +3,6 @@ package org.zywx.wbpalmstar.plugin.uexnfc.mifareclassic;
 import java.io.IOException;
 
 import org.zywx.wbpalmstar.plugin.uexnfc.Util;
-import org.zywx.wbpalmstar.plugin.uexnfc.bean.MifareClassicBean;
 
 import android.nfc.Tag;
 import android.nfc.tech.MifareClassic;
@@ -21,15 +20,8 @@ public class MifareClassicHelper {
 
 	private static final String TAG = "MifareClassicHelper";
 
-	/**
-	 * MifareClassic对象的实例
-	 */
+	// MifareClassic对象的实例
 	private MifareClassic mMifareClassic;
-
-	/**
-	 * 判断Tag是否支持MifareClassic协议的标识量
-	 */
-	private boolean isMifareClassic;
 
 	/**
 	 * 构造方法
@@ -41,25 +33,6 @@ public class MifareClassicHelper {
 
 		mMifareClassic = MifareClassic.get(tag);
 
-		// 如果==null
-		if (mMifareClassic == null) {
-
-			// 不支持
-			isMifareClassic = false;
-		} else {
-
-			// 支持
-			isMifareClassic = true;
-		}
-	}
-
-	/**
-	 * 返回标识量
-	 * 
-	 * @return
-	 */
-	public boolean isMifareClassic() {
-		return isMifareClassic;
 	}
 
 	/**
@@ -69,13 +42,7 @@ public class MifareClassicHelper {
 	 * 
 	 * @return
 	 */
-	public synchronized MifareClassicBean read() {
-
-		if (!isMifareClassic) {
-
-			Log.i(TAG, "isMifareClassic == false");
-			return null;
-		}
+	public MifareClassicBean read() {
 
 		// 新建Bean类存数据
 		MifareClassicBean mcBean = new MifareClassicBean();
@@ -92,6 +59,7 @@ public class MifareClassicHelper {
 		} catch (IOException e) {
 			e.printStackTrace();
 			Log.e(TAG, "【read】	mMifareClassic.connect() IOException", e);
+			return null;
 		}
 
 		// 新建SparseArray
