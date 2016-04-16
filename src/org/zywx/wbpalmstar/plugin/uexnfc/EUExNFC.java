@@ -1,5 +1,7 @@
 package org.zywx.wbpalmstar.plugin.uexnfc;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.zywx.wbpalmstar.engine.EBrowserView;
 import org.zywx.wbpalmstar.engine.universalex.EUExBase;
 import org.zywx.wbpalmstar.engine.universalex.EUExCallback;
@@ -27,6 +29,7 @@ public class EUExNFC extends EUExBase {
 	// 回调
 	private static final String CB_IS_NFC_SUPPORT = "uexNFC.cbIsNFCSupport";// 判断设备是否支持NFC回调
 	private static final String CB_IS_NFC_OPEN = "uexNFC.cbIsNFCOpen";// 判断NFC是否开启回调
+	private static final String CB_CONFIG_NFC = "uexNFC.cbConfigNFC";// 配置NFC回调
 	private static final String CB_START_SCAN_NFC = "uexNFC.cbStartScanNFC";// 开始扫描NFC回调
 	private static final String CB_STOP_SCAN_NFC = "uexNFC.cbStopScanNFC";// 停止扫描NFC回调
 	private static final String CB_GET_NFC_DATA = "uexNFC.cbGetNFCData";// 得到NFC数据回调
@@ -40,6 +43,9 @@ public class EUExNFC extends EUExBase {
 	// NFC相关
 	private NfcAdapter mNfcAdapter;
 	private PendingIntent mPendingIntent;
+
+	// NFC配置项
+	private JSONObject mJsonNfcConfiguration;
 
 	/**
 	 * 构造方法
@@ -91,6 +97,33 @@ public class EUExNFC extends EUExBase {
 	}
 
 	/**
+	 * 配置NFC
+	 * 
+	 * @param param
+	 */
+	public void configNFC(String[] param) {
+
+		if (param.length < 1) {
+			Log.e(TAG, "【configNFC】	param.length < 1");
+			return;
+		}
+
+		try {
+
+			mJsonNfcConfiguration = new JSONObject(param[0]);
+			jsCallback(CB_CONFIG_NFC, 0, EUExCallback.F_C_TEXT, Constant.STATUS_SUCCESS);
+
+		} catch (JSONException e) {
+
+			e.printStackTrace();
+			mJsonNfcConfiguration = null;
+			Log.e(TAG, "【configNFC】	JSONException" + e.getMessage(), e);
+			jsCallback(CB_CONFIG_NFC, 0, EUExCallback.F_C_TEXT, Constant.STATUS_FAIL);
+
+		}
+	}
+
+	/**
 	 * 开始扫描NFC
 	 * 
 	 * 须在主线程中被调用，并且只有在该Activity在前台时（要保证在onResume()方法中调用这个方法）
@@ -99,7 +132,7 @@ public class EUExNFC extends EUExBase {
 	 */
 	public void startScanNFC(String[] param) {
 
-		// 这里将mNfcAdapter最为一个标志
+		// 这里将mNfcAdapter作为一个标志
 		if (mNfcAdapter != null) {
 
 			Log.i(TAG, "【startScanNFC】	mNfcAdapter != null return");
@@ -117,11 +150,20 @@ public class EUExNFC extends EUExBase {
 		if (mNfcAdapter == null) {
 			mNfcAdapter = NfcAdapter.getDefaultAdapter(mContext);
 		}
+
 		// init PendingIntent
 		if (mPendingIntent == null) {
-			mPendingIntent = PendingIntent.getActivity(mContext, 0,
-					new Intent(mContext, NFCActivity.class).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
+
+			Intent intent = new Intent(mContext, NFCActivity.class);
+			intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
+			// 如果NFC配置项不为空，放入Intent
+			if (mJsonNfcConfiguration != null) {
+				intent.putExtra(Constant.KEY_NFC_CONFIGURATION, mJsonNfcConfiguration.toString());
+			}
+			mPendingIntent = PendingIntent.getActivity(mContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 		}
+
 		// 启用前台调度
 		// 须在主线程中被调用，并且只有在该Activity在前台时（要保证在onResume()方法中调用这个方法）
 		mNfcAdapter.enableForegroundDispatch((Activity) mContext, mPendingIntent, null, null);

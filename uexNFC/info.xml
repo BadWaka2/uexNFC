@@ -1,8 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <uexplugins>
     <plugin 
-        uexName="uexNFC" version="3.0.5" build = "5">
-        <info>5:修复了当使用非MifareClassic协议的卡时读不出数据且界面异常的情况</info>
+        uexName="uexNFC" version="3.0.6" build = "6">
+        <info>6:新增configNFC接口，支持前端传入特定类型、特定指令，返回该指令获得到的数据功能，功能未完成</info>
+        <build>5:修复了当使用非MifareClassic协议的卡时读不出数据且界面异常的情况</build>
         <build>4:增加了MifareClassic协议获取详细信息</build>
         <build>3:在EUExNFC中直接启用前台调用，优化了开始扫描时前端页面不能响应的问题;增加了stopScanNFC停止扫描NFC接口</build>
         <build>2:使用透明Activity，取消了弹出NFC应用选择下拉菜单</build>

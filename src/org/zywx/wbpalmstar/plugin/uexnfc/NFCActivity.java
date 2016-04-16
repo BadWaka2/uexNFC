@@ -1,5 +1,6 @@
 package org.zywx.wbpalmstar.plugin.uexnfc;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 
 import org.json.JSONArray;
@@ -33,9 +34,20 @@ public class NFCActivity extends Activity {
 
 	private static final String TAG = "NFCActivity";
 
+	// NFC配置项
+	private JSONObject mJsonNfcConfiguration;
+
 	// 协议标识
 	private static final int TECH_NFC_BASE = 0;// 基础类型
-	private static final int TECH_MIFARE_CLASSIC = 1;// MifareClassic类型
+	private static final int TECH_ISO_DEP = 1;// IsoDep类型
+	private static final int TECH_NFCA = 2;// NfcA类型
+	private static final int TECH_NFCB = 3;// NfcB类型
+	private static final int TECH_NFCF = 4;// NfcF类型
+	private static final int TECH_NFCV = 5;// NfcV类型
+	private static final int TECH_NDEF = 6;// Ndef类型
+	private static final int TECH_NDEF_FORMATABLE = 7;// NdefFormatable类型
+	private static final int TECH_MIFARE_CLASSIC = 8;// MifareClassic类型
+	private static final int TECH_MIFARE_ULTRALIGHT = 9;// MifareUltralight类型
 
 	// Handler
 	private MyHandler mHandler = new MyHandler(this);
@@ -122,21 +134,28 @@ public class NFCActivity extends Activity {
 		// 解析Intent的Action
 		String action = intent.getAction();
 
+		// 获得NFC配置项
+		String jsonStrNfcConfiguration = intent.getStringExtra(Constant.KEY_NFC_CONFIGURATION);
+		if (jsonStrNfcConfiguration != null && !jsonStrNfcConfiguration.isEmpty()) {
+			try {
+
+				mJsonNfcConfiguration = new JSONObject(jsonStrNfcConfiguration);
+				Log.i(TAG, "【resolveIntent】	mJsonNfcConfiguration" + mJsonNfcConfiguration.toString());
+
+			} catch (JSONException e) {
+
+				e.printStackTrace();
+				mJsonNfcConfiguration = null;
+				Log.e(TAG, "【resolveIntent】	JSONException" + e.getMessage(), e);
+
+			}
+		}
+
 		// 如果Action==null，直接return
 		if (action == null) {
 
-			Log.i(TAG, "action == null");
+			Log.e(TAG, "【resolveIntent】	action == null");
 			return;
-		}
-
-		// 如果是ACTION_NDEF_DISCOVERED
-		if (action.equals(NfcAdapter.ACTION_NDEF_DISCOVERED)) {
-
-		}
-
-		// 如果是ACTION_TECH_DISCOVERED
-		else if (action.equals(NfcAdapter.ACTION_TECH_DISCOVERED)) {
-
 		}
 
 		// 如果是ACTION_TAG_DISCOVERED
@@ -182,38 +201,68 @@ public class NFCActivity extends Activity {
 		NFCBaseBean baseBean = getBaseInfo(tag);
 		JSONObject jsonBaseInfo = packageData(baseBean, TECH_NFC_BASE);
 
-		/*
-		 * 如果该标签支持MifareClassic类型
-		 */
-		if (MifareClassic.get(tag) != null) {
+		int tech = TECH_NFC_BASE;
+		try {
+			tech = Integer.valueOf(mJsonNfcConfiguration.getString("tech"));
+		} catch (JSONException e) {
+			e.printStackTrace();
+			Log.e(TAG, "【getTagInfo】	JSONException" + e.getMessage(), e);
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+			Log.e(TAG, "【getTagInfo】	NumberFormatException" + e.getMessage(), e);
+		} catch (NullPointerException e) {
+			e.printStackTrace();
+			Log.e(TAG, "【getTagInfo】	NullPointerException" + e.getMessage(), e);
+		}
 
-			Log.i(TAG, "【getTagInfo】	类型 : MifareClassic");
+		// 1 IsoDep
+		if (tech == TECH_ISO_DEP) {
 
-			MifareClassicHelper mifareClassicHelper = new MifareClassicHelper(tag);
+			// 如果该标签支持IsoDep类型
+			if (IsoDep.get(tag) != null) {
 
-			// 读取数据
-			MifareClassicBean mcBean = mifareClassicHelper.read();
+				IsoDep isoDep = IsoDep.get(tag);
 
-			if (mcBean != null) {
+				try {
 
-				// 传入基本数据
-				mcBean.setBaseBean(baseBean);
+					isoDep.connect();
 
-				// 封装数据进一个JSON中
-				JSONObject jsonObject = packageData(mcBean, TECH_MIFARE_CLASSIC);
-				return jsonObject;
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 
-		/*
-		 * 如果该标签支持IsoDep类型
-		 */
-		else if (IsoDep.get(tag) != null) {
+		else if (tech == TECH_NFCA) {
 
+			// 如果该标签支持NfcA类型
+			if (NfcA.get(tag) != null) {
+
+			}
 		}
 
-		else if (NfcA.get(tag) != null) {
+		else if (tech == TECH_MIFARE_CLASSIC) {
 
+			// 如果该标签支持MifareClassic类型
+			if (MifareClassic.get(tag) != null) {
+
+				Log.i(TAG, "【getTagInfo】	类型 : MifareClassic");
+
+				MifareClassicHelper mifareClassicHelper = new MifareClassicHelper(tag);
+
+				// 读取数据
+				MifareClassicBean mcBean = mifareClassicHelper.read();
+
+				if (mcBean != null) {
+
+					// 传入基本数据
+					mcBean.setBaseBean(baseBean);
+
+					// 封装数据进一个JSON中
+					JSONObject jsonObject = packageData(mcBean, TECH_MIFARE_CLASSIC);
+					return jsonObject;
+				}
+			}
 		}
 
 		return jsonBaseInfo;
@@ -234,7 +283,7 @@ public class NFCActivity extends Activity {
 
 		// 十六进制id
 		String tagIdHex = Util.byte2HexString(tagId);
-		Log.i(TAG, "【得到Tag信息】	tagIdHex = " + tagIdHex);
+		Log.i(TAG, "【getBaseInfo】	tagIdHex = " + tagIdHex);
 
 		// 支持协议类型
 		StringBuffer sb = new StringBuffer();
@@ -245,7 +294,7 @@ public class NFCActivity extends Activity {
 		}
 		sb.delete(sb.length() - 1, sb.length());// 删除多余的逗号
 		String technologies = sb.toString();
-		Log.i(TAG, "【得到Tag信息】	technologies = " + technologies);
+		Log.i(TAG, "【getBaseInfo】	technologies = " + technologies);
 
 		baseBean.setTagId(tagId);
 		baseBean.setTagIdHex(tagIdHex);

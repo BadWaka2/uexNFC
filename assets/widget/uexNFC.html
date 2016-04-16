@@ -21,6 +21,11 @@
 			alert("------cbIsNFCOpen------\n" + data);
 		}
 		
+		//配置NFC回调
+		uexNFC.cbConfigNFC = function(opCode, dataType, data) {
+			alert("------cbConfigNFC------\n" + data);
+		}
+		
 		//开始扫描NFC回调
 		uexNFC.cbStartScanNFC = function(opCode, dataType, data) {
 			alert("------cbStartScanNFC------\n" + data);
@@ -37,14 +42,11 @@
 		}
 	}
 	
-	//产生 PKCS10 证书请求
-	function generateP10() {
-		var certType = document.getElementById("certType1").value;
-		var pinCode = document.getElementById("pinCode1").value;
-		var certSys = document.getElementById("certSys1").value;
-		var loginname = document.getElementById("loginname1").value;
-		var domainname = document.getElementById("domainname1").value;
-		uexCFCA.generateP10(certType,pinCode,certSys,loginname,domainname);
+	//配置NFC
+	function configNFC() {
+		var jsonArray = [""];
+		var json = {"tech":"1"};
+		uexNFC.configNFC(JSON.stringify(json));
 	}
 	
 	
@@ -61,6 +63,9 @@
 
 			<span>isNFCOpen</span>
 			<input class="btn" type="button" value="判断设备NFC是否打开" onclick="uexNFC.isNFCOpen()" /><br /> <br />
+
+			<span>configNFC</span>
+			<input class="btn" type="button" value="配置NFC" onclick="configNFC()" /><br /> <br />
 
 			<span>startScanNFC</span>
 			<input class="btn" type="button" value="开始扫描NFC" onclick="uexNFC.startScanNFC()" /><br /> <br />
