@@ -24,7 +24,7 @@ import android.util.Log;
  */
 public class EUExNFC extends EUExBase {
 
-	private static final String TAG = "EUExNFC";
+	private static final String TAG = "uexNFC";
 
 	// 回调
 	private static final String CB_IS_NFC_SUPPORT = "uexNFC.cbIsNFCSupport";// 判断设备是否支持NFC回调
@@ -103,14 +103,23 @@ public class EUExNFC extends EUExBase {
 	 */
 	public void configNFC(String[] param) {
 
+		if (mJsonNfcConfiguration == null) {
+			Log.i(TAG, "【configNFC】	mJsonNfcConfiguration == null");
+		} else {
+			Log.i(TAG, "【configNFC】	mJsonNfcConfiguration = " + mJsonNfcConfiguration.toString());
+		}
+
 		if (param.length < 1) {
 			Log.e(TAG, "【configNFC】	param.length < 1");
 			return;
 		}
 
+		Log.i(TAG, "【configNFC】	param[0] = " + param[0]);
+
 		try {
 
 			mJsonNfcConfiguration = new JSONObject(param[0]);
+			Log.i(TAG, "【configNFC】	mJsonNfcConfiguration = " + mJsonNfcConfiguration.toString());
 			jsCallback(CB_CONFIG_NFC, 0, EUExCallback.F_C_TEXT, Constant.STATUS_SUCCESS);
 
 		} catch (JSONException e) {
@@ -152,17 +161,14 @@ public class EUExNFC extends EUExBase {
 		}
 
 		// init PendingIntent
-		if (mPendingIntent == null) {
+		Intent intent = new Intent(mContext, NFCActivity.class);
+		intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
-			Intent intent = new Intent(mContext, NFCActivity.class);
-			intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-
-			// 如果NFC配置项不为空，放入Intent
-			if (mJsonNfcConfiguration != null) {
-				intent.putExtra(Constant.KEY_NFC_CONFIGURATION, mJsonNfcConfiguration.toString());
-			}
-			mPendingIntent = PendingIntent.getActivity(mContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+		// 如果NFC配置项不为空，放入Intent
+		if (mJsonNfcConfiguration != null) {
+			intent.putExtra(Constant.KEY_NFC_CONFIGURATION, mJsonNfcConfiguration.toString());
 		}
+		mPendingIntent = PendingIntent.getActivity(mContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
 		// 启用前台调度
 		// 须在主线程中被调用，并且只有在该Activity在前台时（要保证在onResume()方法中调用这个方法）

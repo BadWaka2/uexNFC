@@ -20,10 +20,19 @@ public class Constant {
 	// EUExNFC发送PendingIntent时向NFCActivity发送的数据
 	public static final String KEY_NFC_CONFIGURATION = "jsonNfcConfiguration";// NFC配置项
 
+	// 从前端得到JSON
+	// 配置NFCJSON
+	public static final String JSON_FROM_FRONT_CONFIG_NFC_TECH = "tech";// tech，要解析的特定的协议类型
+	public static final String JSON_FROM_FRONT_CONFIG_NFC_CMDS = "cmds";// cmds，要解析的特定的协议的指令集
+
+	// 给前端返回JSON
 	// 得到NFC信息JSON
 	public static final String UID = "uid";// uid，十六进制id
 	public static final String TECHNOLOGIES = "technologies";// 支持协议类型数组
 	public static final String CURRENT_TECH = "currentTech";// 当前协议类型
+
+	// IsoDep协议JSON
+	public static final String JSON_TO_FRONT_TRANSCEIVED_RESPONSES = "transceivedResponses";// transceive操作返回的数据
 
 	// MifareClassic协议JSON
 	public static final String MIFARE_CLASSIC_TYPE = "mifareClassicType";// MifareClassic类型

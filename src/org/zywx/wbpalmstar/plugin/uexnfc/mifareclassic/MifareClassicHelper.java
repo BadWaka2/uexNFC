@@ -3,6 +3,7 @@ package org.zywx.wbpalmstar.plugin.uexnfc.mifareclassic;
 import java.io.IOException;
 
 import org.zywx.wbpalmstar.plugin.uexnfc.Util;
+import org.zywx.wbpalmstar.plugin.uexnfc.bean.MifareClassicBean;
 
 import android.nfc.Tag;
 import android.nfc.tech.MifareClassic;

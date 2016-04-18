@@ -1,4 +1,4 @@
-package org.zywx.wbpalmstar.plugin.uexnfc;
+package org.zywx.wbpalmstar.plugin.uexnfc.bean;
 
 public class NFCBaseBean {
 
@@ -16,6 +16,11 @@ public class NFCBaseBean {
 	 * 所支持的协议类型
 	 */
 	private String technologies;
+
+	/**
+	 * transceive操作完成后的返回值
+	 */
+	private String[] transceivedResponses;
 
 	public byte[] getTagId() {
 		return tagId;
@@ -39,6 +44,14 @@ public class NFCBaseBean {
 
 	public void setTechnologies(String technologies) {
 		this.technologies = technologies;
+	}
+
+	public String[] getTransceivedResponses() {
+		return transceivedResponses;
+	}
+
+	public void setTransceivedResponses(String[] transceivedResponses) {
+		this.transceivedResponses = transceivedResponses;
 	}
 
 	/**
