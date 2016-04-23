@@ -11,6 +11,10 @@ import org.zywx.wbpalmstar.plugin.uexnfc.mifareclassic.MifareClassicHelper;
 import android.nfc.Tag;
 import android.nfc.tech.IsoDep;
 import android.nfc.tech.MifareClassic;
+import android.nfc.tech.NfcA;
+import android.nfc.tech.NfcB;
+import android.nfc.tech.NfcF;
+import android.nfc.tech.NfcV;
 import android.util.Log;
 import android.util.SparseArray;
 
@@ -179,6 +183,66 @@ public class NFCManager {
 		 */
 		else if (tech == TECH_NFCA) {
 
+			// 如果该标签不支持NfcA类型
+			if (NfcA.get(tag) == null) {
+
+				Log.e(TAG, "【getTagInfo】	该标签不支持NfcA类型");
+				return jsonBaseInfo;
+			}
+
+			// 如果指令集为null
+			if (jsonArrayCmds == null) {
+
+				Log.e(TAG, "【getTagInfo】	指令集为null");
+				return jsonBaseInfo;
+			}
+
+			NfcA nfcA = NfcA.get(tag);
+
+			// 连接
+			try {
+				nfcA.connect();
+			} catch (IOException e) {
+				e.printStackTrace();
+				Log.e(TAG, "【getTagInfo】	nfcA.connect()" + e.getMessage(), e);
+				return jsonBaseInfo;
+			}
+
+			String[] transceivedResponses = new String[jsonArrayCmds.length()];
+
+			// 取出每一条指令，依次进行transceive操作
+			for (int i = 0; i < jsonArrayCmds.length(); i++) {
+
+				try {
+
+					// 获得指令的十六进制字符串
+					String cmdStr = jsonArrayCmds.getString(i);
+
+					// 根据十六进制字符串转换得到byte数组
+					byte[] cmd = Util.hexStringToByteArraySplitByComma(cmdStr);
+
+					byte[] transceivedResponse = nfcA.transceive(cmd);
+
+					String transceivedResponseStr = Util.byteArrayToHexStringSplitByComma(transceivedResponse);
+
+					transceivedResponses[i] = transceivedResponseStr;
+
+				} catch (JSONException e) {
+
+					e.printStackTrace();
+					transceivedResponses[i] = "";
+
+				} catch (IOException e) {
+
+					e.printStackTrace();
+					transceivedResponses[i] = "";
+
+				}
+			}
+
+			baseBean.setTransceivedResponses(transceivedResponses);
+
+			return packageData(baseBean, TECH_NFCA);
 		}
 
 		/*
@@ -186,6 +250,66 @@ public class NFCManager {
 		 */
 		else if (tech == TECH_NFCB) {
 
+			// 如果该标签不支持NfcB类型
+			if (NfcB.get(tag) == null) {
+
+				Log.e(TAG, "【getTagInfo】	该标签不支持NfcB类型");
+				return jsonBaseInfo;
+			}
+
+			// 如果指令集为null
+			if (jsonArrayCmds == null) {
+
+				Log.e(TAG, "【getTagInfo】	指令集为null");
+				return jsonBaseInfo;
+			}
+
+			NfcB nfcB = NfcB.get(tag);
+
+			// 连接
+			try {
+				nfcB.connect();
+			} catch (IOException e) {
+				e.printStackTrace();
+				Log.e(TAG, "【getTagInfo】	nfcB.connect()" + e.getMessage(), e);
+				return jsonBaseInfo;
+			}
+
+			String[] transceivedResponses = new String[jsonArrayCmds.length()];
+
+			// 取出每一条指令，依次进行transceive操作
+			for (int i = 0; i < jsonArrayCmds.length(); i++) {
+
+				try {
+
+					// 获得指令的十六进制字符串
+					String cmdStr = jsonArrayCmds.getString(i);
+
+					// 根据十六进制字符串转换得到byte数组
+					byte[] cmd = Util.hexStringToByteArraySplitByComma(cmdStr);
+
+					byte[] transceivedResponse = nfcB.transceive(cmd);
+
+					String transceivedResponseStr = Util.byteArrayToHexStringSplitByComma(transceivedResponse);
+
+					transceivedResponses[i] = transceivedResponseStr;
+
+				} catch (JSONException e) {
+
+					e.printStackTrace();
+					transceivedResponses[i] = "";
+
+				} catch (IOException e) {
+
+					e.printStackTrace();
+					transceivedResponses[i] = "";
+
+				}
+			}
+
+			baseBean.setTransceivedResponses(transceivedResponses);
+
+			return packageData(baseBean, TECH_NFCB);
 		}
 
 		/*
@@ -193,6 +317,66 @@ public class NFCManager {
 		 */
 		else if (tech == TECH_NFCF) {
 
+			// 如果该标签不支持NfcF类型
+			if (NfcF.get(tag) == null) {
+
+				Log.e(TAG, "【getTagInfo】	该标签不支持NfcF类型");
+				return jsonBaseInfo;
+			}
+
+			// 如果指令集为null
+			if (jsonArrayCmds == null) {
+
+				Log.e(TAG, "【getTagInfo】	指令集为null");
+				return jsonBaseInfo;
+			}
+
+			NfcF nfcF = NfcF.get(tag);
+
+			// 连接
+			try {
+				nfcF.connect();
+			} catch (IOException e) {
+				e.printStackTrace();
+				Log.e(TAG, "【getTagInfo】	nfcF.connect()" + e.getMessage(), e);
+				return jsonBaseInfo;
+			}
+
+			String[] transceivedResponses = new String[jsonArrayCmds.length()];
+
+			// 取出每一条指令，依次进行transceive操作
+			for (int i = 0; i < jsonArrayCmds.length(); i++) {
+
+				try {
+
+					// 获得指令的十六进制字符串
+					String cmdStr = jsonArrayCmds.getString(i);
+
+					// 根据十六进制字符串转换得到byte数组
+					byte[] cmd = Util.hexStringToByteArraySplitByComma(cmdStr);
+
+					byte[] transceivedResponse = nfcF.transceive(cmd);
+
+					String transceivedResponseStr = Util.byteArrayToHexStringSplitByComma(transceivedResponse);
+
+					transceivedResponses[i] = transceivedResponseStr;
+
+				} catch (JSONException e) {
+
+					e.printStackTrace();
+					transceivedResponses[i] = "";
+
+				} catch (IOException e) {
+
+					e.printStackTrace();
+					transceivedResponses[i] = "";
+
+				}
+			}
+
+			baseBean.setTransceivedResponses(transceivedResponses);
+
+			return packageData(baseBean, TECH_NFCF);
 		}
 
 		/*
@@ -200,6 +384,66 @@ public class NFCManager {
 		 */
 		else if (tech == TECH_NFCV) {
 
+			// 如果该标签不支持NfcV类型
+			if (NfcV.get(tag) == null) {
+
+				Log.e(TAG, "【getTagInfo】	该标签不支持NfcV类型");
+				return jsonBaseInfo;
+			}
+
+			// 如果指令集为null
+			if (jsonArrayCmds == null) {
+
+				Log.e(TAG, "【getTagInfo】	指令集为null");
+				return jsonBaseInfo;
+			}
+
+			NfcV nfcV = NfcV.get(tag);
+
+			// 连接
+			try {
+				nfcV.connect();
+			} catch (IOException e) {
+				e.printStackTrace();
+				Log.e(TAG, "【getTagInfo】	nfcV.connect()" + e.getMessage(), e);
+				return jsonBaseInfo;
+			}
+
+			String[] transceivedResponses = new String[jsonArrayCmds.length()];
+
+			// 取出每一条指令，依次进行transceive操作
+			for (int i = 0; i < jsonArrayCmds.length(); i++) {
+
+				try {
+
+					// 获得指令的十六进制字符串
+					String cmdStr = jsonArrayCmds.getString(i);
+
+					// 根据十六进制字符串转换得到byte数组
+					byte[] cmd = Util.hexStringToByteArraySplitByComma(cmdStr);
+
+					byte[] transceivedResponse = nfcV.transceive(cmd);
+
+					String transceivedResponseStr = Util.byteArrayToHexStringSplitByComma(transceivedResponse);
+
+					transceivedResponses[i] = transceivedResponseStr;
+
+				} catch (JSONException e) {
+
+					e.printStackTrace();
+					transceivedResponses[i] = "";
+
+				} catch (IOException e) {
+
+					e.printStackTrace();
+					transceivedResponses[i] = "";
+
+				}
+			}
+
+			baseBean.setTransceivedResponses(transceivedResponses);
+
+			return packageData(baseBean, TECH_NFCV);
 		}
 
 		/*
@@ -302,19 +546,26 @@ public class NFCManager {
 		JSONObject jsonObject = new JSONObject();
 		try {
 
-			// uid
+			/* 添加uid */
 			jsonObject.put(Constant.UID, baseBean.getTagIdHex());
 
-			// 支持协议类型
+			/* 添加支持协议类型 */
 			jsonObject.put(Constant.TECHNOLOGIES, baseBean.getTechnologies());
 
-			// 指令集transceive后的返回值
-			String[] transceivedResponses = baseBean.getTransceivedResponses();
-			if (transceivedResponses != null) {
+			// 如果不是基础协议类型
+			if (tech != TECH_NFC_BASE) {
+				/* 添加当前协议类型 */
+				jsonObject.put(Constant.CURRENT_TECH, tech);
+			}
+
+			// 如果指令集transceive后的返回值不为null
+			if (baseBean.getTransceivedResponses() != null) {
+				String[] transceivedResponses = baseBean.getTransceivedResponses();
 				JSONArray jsonArray1 = new JSONArray();
 				for (int i = 0; i < transceivedResponses.length; i++) {
 					jsonArray1.put(transceivedResponses[i]);
 				}
+				/* 添加指令集transceive后的返回值 */
 				jsonObject.put(Constant.JSON_TO_FRONT_TRANSCEIVED_RESPONSES, jsonArray1);
 			}
 
